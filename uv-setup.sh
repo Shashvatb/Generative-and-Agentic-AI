@@ -18,3 +18,6 @@ uv add langchain
 
 # add packages from requirements.txt
 uv add -r requirements.txt
+
+# run script by 
+uv run langchain_basic.py
