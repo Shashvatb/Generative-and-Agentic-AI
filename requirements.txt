@@ -1,6 +1,8 @@
 langchain
 langchain-groq
+langchain-community
 langchain-openai
 langgraph
 python-dotenv
 streamlit
+wikipedia
