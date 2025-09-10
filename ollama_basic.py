@@ -25,7 +25,10 @@ check installation
 ollama -v
 
 run a model of choice. it needs to run it here in order to download the model first
-ollama run llama-2
+ollama run llama2
+
+can delete it from local with
+ollama rm llama2
 """
 llm = OllamaLLM(model='llama2')
 
