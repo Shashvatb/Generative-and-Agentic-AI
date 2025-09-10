@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "bs4>=0.0.2",
     "langchain>=0.3.27",
     "langchain-community>=0.3.29",
     "langchain-groq>=0.3.7",
@@ -12,6 +13,7 @@ dependencies = [
     "langchain-openai>=0.3.29",
     "langgraph>=0.6.4",
     "ollama>=0.5.3",
+    "pypdf>=6.0.0",
     "python-dotenv>=1.1.1",
     "streamlit>=1.48.0",
     "wikipedia>=1.4.0",

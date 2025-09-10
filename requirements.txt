@@ -8,3 +8,5 @@ python-dotenv
 streamlit
 wikipedia
 ollama
+bs4
+pypdf
