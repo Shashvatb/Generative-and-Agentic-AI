@@ -8,7 +8,7 @@
 from langchain_community.document_loaders import TextLoader, WebBaseLoader, PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma, FAISS
 import os
 import bs4
 from dotenv import load_dotenv
@@ -42,9 +42,14 @@ documents = text_splitter.split_documents(text)
 
 ## Vector embeddings and store
 embeddings = OllamaEmbeddings(model="llama2")
-db = Chroma.from_documents(documents=documents, embedding=embeddings)
-
 query = 'who owns pokemon?'
 
+### Chroma database
+db = Chroma.from_documents(documents=documents, embedding=embeddings)
+result = db.similarity_search(query)
+# print(result[0].page_content)
+
+### faiss database
+db = FAISS.from_documents(documents=documents, embedding=embeddings)
 result = db.similarity_search(query)
 print(result[0].page_content)
