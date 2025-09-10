@@ -2,11 +2,7 @@ from langchain_core.tools import tool, StructuredTool
 from typing import Annotated, List
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
-from langchain_groq import ChatGroq # legacy
-from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from langchain_core.messages import HumanMessage
 from langchain_community.tools import WikipediaQueryRun 
 from langchain_community.utilities import WikipediaAPIWrapper
 import asyncio
