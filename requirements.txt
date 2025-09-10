@@ -10,3 +10,5 @@ wikipedia
 ollama
 bs4
 pypdf
+chromadb
+faiss-cpu
