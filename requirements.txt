@@ -2,7 +2,9 @@ langchain
 langchain-groq
 langchain-community
 langchain-openai
+langchain_ollama
 langgraph
 python-dotenv
 streamlit
 wikipedia
+ollama
