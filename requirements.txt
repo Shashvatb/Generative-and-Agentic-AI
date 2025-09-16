@@ -4,11 +4,14 @@ langchain-community
 langchain-openai
 langchain_ollama
 langgraph
+langsmith
 python-dotenv
 streamlit
 wikipedia
+arxiv
 ollama
 bs4
 pypdf
 chromadb
 faiss-cpu
+pygraphviz
