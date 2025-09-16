@@ -17,7 +17,6 @@ def get_haiku_text(text):
 if __name__ == '__main__':
     os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
 
-
     ## Simple LLM call with streaming
     #initialize chat model
     model = init_chat_model('groq:llama-3.1-8b-instant') # new method to unify all chat model init
