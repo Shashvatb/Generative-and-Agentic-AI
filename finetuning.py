@@ -24,9 +24,22 @@ scale facto = 4.0
 x_min_new = -20/4 = -5 (it is signed) -> this number is called zero point
 x_new = round(x_old/scale_factor) + zero_point
 
-
 Post Training quantization (PTQ) - already have pretrained model -> apply calibration to weights and save it as quantized model
     - loss of info
 Quantization aware training (QAT) - take the trained model, perform calibration, perform fine tuning on new training data.
     - trained on new precision values
+
+
+We get weights of a LLM trained on huge data. fine tune on new data on all params. major challenge -> expensive
+then we can perform domain specific fine tuning (for medical data etc) 
+or we can perform specific task fine tuning (for Q&A chatbot, document retrieval etc)
+
+LoRA (Low Rank Adaptation of LLM) - instead of updating all weight, it will track the changes in weights based on fine tuning (same size matrix) and based on that it will update weights
+the tracked weights are stored as 2 vectors which is created with matrix decomp (the vectors can be cross product-ed to reform the matrix)
+there is loss in precision but the resources needed are much lower.
+W0 + W_delta = W0 + BxA
+the parameters increase linearly with the rank increase (instead of polynomial)
+high ranks are used - if we want more complex model. if we need a simple LLM, we can use smaller ranks
+
+QLora (Quantized LoRA) - All params stored in W_delta, we store it in lower precision (saves even more resources)
 """
