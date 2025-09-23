@@ -14,6 +14,8 @@ llama-index-embeddings-langchain
 chromadb
 faiss-cpu
 
+accelerate
+bitsandbytes
 sentencepiece
 peft
 trl
