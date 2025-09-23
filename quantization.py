@@ -40,10 +40,11 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 
 import torch
+import gc
 
 # QUANTIZATION - Post Training quantization
-# model_id = "meta-llama/Llama-3.1-8B"
-model_id = "openlm-research/open_llama_3b"
+model_id = "meta-llama/Llama-3.1-8B"
+# model_id = "openlm-research/open_llama_3b"
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=False, legacy=False)
@@ -55,17 +56,23 @@ model = AutoModelForCausalLM.from_pretrained(
     dtype=torch.float16
 )
 print('Model loaded in 16-bit')
+print(f"Allocated: {torch.cuda.memory_allocated()/1024**3:.2f} GB")
+print(f"Reserved:  {torch.cuda.memory_reserved()/1024**3:.2f} GB")
+print(f"System RAM used (approx): {torch.cuda.memory_allocated()/1024**3 + torch.cuda.memory_reserved()/1024**3:.2f} GB")
 # Test tokenization and generation
 inputs = tokenizer("Hello, how are you?", return_tensors="pt").to("cuda")
 outputs = model.generate(**inputs, max_new_tokens=50)
 print('16 bit result: ', tokenizer.decode(outputs[0], skip_special_tokens=True))
 del model
+torch.cuda.empty_cache() 
+gc.collect()
+torch.cuda.synchronize()
 
 # Load model in 8-bit
 bnb_config_8bit = BitsAndBytesConfig(
-    load_in_8bit=True
+    load_in_8bit=True,
+    # llm_int8_enable_fp32_cpu_offload=True
 )
-
 
 model_8bit = AutoModelForCausalLM.from_pretrained(
     model_id,
@@ -73,16 +80,23 @@ model_8bit = AutoModelForCausalLM.from_pretrained(
     quantization_config=bnb_config_8bit
 )
 print("Model loaded in 8-bit.")
+print(f"Allocated: {torch.cuda.memory_allocated()/1024**3:.2f} GB")
+print(f"Reserved:  {torch.cuda.memory_reserved()/1024**3:.2f} GB")
+print(f"System RAM used (approx): {torch.cuda.memory_allocated()/1024**3 + torch.cuda.memory_reserved()/1024**3:.2f} GB")
 outputs = model_8bit.generate(**inputs, max_new_tokens=50)
 print('8-bit result: ', tokenizer.decode(outputs[0], skip_special_tokens=True))
 del model_8bit
+torch.cuda.empty_cache()
+gc.collect()
+torch.cuda.synchronize()
 
 # Load model in 4-bit
 bnb_config_4bit = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_compute_dtype=torch.float16,
     bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type="nf4"
+    bnb_4bit_quant_type="nf4",
+    # llm_int8_enable_fp32_cpu_offload=True
 )
 
 model_4bit = AutoModelForCausalLM.from_pretrained(
@@ -92,6 +106,9 @@ model_4bit = AutoModelForCausalLM.from_pretrained(
 )
 
 print("Model loaded in 4-bit.")
+print(f"Allocated: {torch.cuda.memory_allocated()/1024**3:.2f} GB")
+print(f"Reserved:  {torch.cuda.memory_reserved()/1024**3:.2f} GB")
+print(f"System RAM used (approx): {torch.cuda.memory_allocated()/1024**3 + torch.cuda.memory_reserved()/1024**3:.2f} GB")
 outputs = model_4bit.generate(**inputs, max_new_tokens=50)
 print('4-bit result: ', tokenizer.decode(outputs[0], skip_special_tokens=True))
 
@@ -106,8 +123,8 @@ pipe = pipeline(
 )
 llm = HuggingFacePipeline(pipeline=pipe)
 prompt = PromptTemplate.from_template("Answer the question: {query}")
-chain = LLMChain(llm=llm, prompt=prompt)
+chain = prompt | llm
 
 query = "Explain the basics of Pokémon in simple terms."
-print(chain.run(query))
+print(chain.invoke(query))
 del model_4bit
