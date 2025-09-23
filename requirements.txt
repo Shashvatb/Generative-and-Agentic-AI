@@ -17,6 +17,7 @@ faiss-cpu
 accelerate
 bitsandbytes
 sentencepiece
+datasets
 peft
 trl
 
