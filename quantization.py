@@ -36,7 +36,6 @@ from transformers import (
     pipeline,
 )
 from langchain_huggingface import HuggingFacePipeline
-from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 
 import torch
