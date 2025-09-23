@@ -15,8 +15,8 @@ QLora (Quantized LoRA) - All params stored in W_delta, we store it in lower prec
 PEFT - parameter efficient fine tuning
 TRL - Transformers Reinforcement Learning
 """
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
-from peft import LoraConfig, get_peft_model
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from datasets import load_dataset, Dataset
 from trl import SFTTrainer
 
@@ -24,28 +24,41 @@ import torch
 
 
 def preprocess(example):
-    label = "positive" if example["label"] == 1 else "negative"
-    text = f"Review: {example['text']}"
-    return {
-        "prompt": text, 
-        "completion": label
-    }
+    # Get text and label
+    text = example.get("text") or example.get("prompt", "")
+    label = "positive" if example.get("label", 1) == 1 else "negative"
 
+    # Build prompt and completion
+    prompt = f"Review: {text.strip()}\n"
+    completion = f" {label.strip()}"
 
-# model_id = "meta-llama/Llama-3.1-8B"
-model_id = "openlm-research/open_llama_3b" # using this model so we dont have to offload it to the cpu because that doesnt work for LoRA.
-# We can use a quantized model for QLoRA
+    return {"prompt": prompt, "completion": completion}
+
+model_id = "meta-llama/Llama-3.1-8B"
+# model_id = "openlm-research/open_llama_3b" 
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=False, legacy=False)
 tokenizer.pad_token = tokenizer.eos_token # need to add this because it doesnt have a pad token by default
 
-# Load model in 16-bit
+# Load model in 4-bit
+bnb_config_4bit = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_quant_type="nf4",
+    # llm_int8_enable_fp32_cpu_offload=True
+)
+
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
-    device_map="auto", 
-    dtype=torch.float16  
+    device_map="auto",
+    quantization_config=bnb_config_4bit
 )
+
+model = prepare_model_for_kbit_training(model,
+    use_gradient_checkpointing=True,  
+) # THIS IS SUPER IMPORTANT FOR QLoRA, it freezes things that are not required to be updated
 
 # LoRA config
 lora_config = LoraConfig(
@@ -57,7 +70,6 @@ lora_config = LoraConfig(
 )
 
 model_peft = get_peft_model(model, lora_config)
-model_peft = model_peft
 
 # Dataset (existing dataset)
 dataset = load_dataset("imdb", split="train[:200]")
@@ -68,19 +80,19 @@ eval_dataset = dataset["test"]
 
 # Supervised Fine-Tuning
 training_args = TrainingArguments(
-    output_dir="./tmp_unused", 
+    output_dir="./tmp_unused",  
     per_device_train_batch_size=1,
     gradient_accumulation_steps=4,
     learning_rate=1e-4,
     num_train_epochs=1,
     logging_steps=1,
     save_strategy="no",
-    fp16=True
+    fp16=False
 )
 trainer = SFTTrainer(
     model=model_peft,
     train_dataset=train_dataset,
-    args=training_args
+    args=training_args,
 )
 trainer.train()
 
@@ -92,7 +104,10 @@ output_ids = model_peft.generate(
     **inputs,
     max_new_tokens=50,
     temperature=0.7,
-    top_p=0.9
+    top_p=0.9,
+    use_cache=False,
+    pad_token_id=tokenizer.eos_token_id,
+    eos_token_id=tokenizer.eos_token_id,
 )
 generated_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
 print("Generated:", generated_text)
@@ -112,19 +127,19 @@ print('Custom Dataset loaded\n')
 # Same steps
 model_peft = get_peft_model(model, lora_config)
 training_args = TrainingArguments(
-    output_dir="./tmp_unused",  
+    output_dir="./tmp_unused", 
     per_device_train_batch_size=1,
     gradient_accumulation_steps=4,
     learning_rate=1e-4,
     num_train_epochs=1,
     logging_steps=1,
     save_strategy="no",
-    fp16=True
+    fp16=False
 )
 trainer = SFTTrainer(
     model=model_peft,
     train_dataset=train_dataset,
-    args=training_args
+    args=training_args,
 )
 trainer.train()
 prompt = "Tell me about pikachu"
@@ -134,7 +149,10 @@ output_ids = model_peft.generate(
     **inputs,
     max_new_tokens=50,
     temperature=0.7,
-    top_p=0.9
+    top_p=0.9,
+    use_cache=False,
+    pad_token_id=tokenizer.eos_token_id,
+    eos_token_id=tokenizer.eos_token_id,
 )
 generated_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
 print("Generated:", generated_text)
