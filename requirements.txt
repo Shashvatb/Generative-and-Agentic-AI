@@ -14,6 +14,10 @@ llama-index-embeddings-langchain
 chromadb
 faiss-cpu
 
+sentencepiece
+peft
+trl
+
 pygraphviz
 bs4
 pypdf
@@ -22,3 +26,4 @@ wikipedia
 arxiv
 python-dotenv
 streamlit
+blobfile
