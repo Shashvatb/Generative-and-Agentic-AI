@@ -22,4 +22,59 @@ The MCP client communicates with MCP server and gets the list of all the service
 the input and list of tools go to the MCP client which is sent to the LLM
 The llm will request the tools needed
 The tool is called and the context is sent to the llm and we get the output
+
+We will be using https://github.com/mcptutorial/mcp-use as our unified MCP
+
 """
+import asyncio
+import os
+from dotenv import load_dotenv
+from langchain_groq import ChatGroq
+from mcp_use import MCPAgent, MCPClient
+
+async def main():
+    # Load environment variables
+    load_dotenv()
+
+    # Create configuration dictionary
+    """
+    need to add npx command which is related to node.js
+    # Add NodeSource repository for Node 20 (replace 20 with the version you want)
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+    # Install Node.js
+    sudo apt install -y nodejs
+
+    """
+    config = {
+      "mcpServers": {
+        "playwright": {
+          "command": "npx",
+          "args": ["@playwright/mcp@latest"],
+          "env": {
+            "DISPLAY": ":1"
+          }
+        }
+      }
+    }
+
+    # Create MCPClient from configuration dictionary
+    client = MCPClient.from_dict(config)
+    # client = MCPClient.from_config_file(
+    #     os.path.join("browser_mcp.json")
+    # )                                         # can get MCP client this way too
+
+    # Create LLM
+    llm = ChatGroq(model="llama-3.1-8b-instant")
+
+    # Create agent with the client
+    agent = MCPAgent(llm=llm, client=client, max_steps=30)
+
+    # Run the query
+    result = await agent.run(
+        "Find the best place to buy sporting goods in Kaiserslautern",
+    )
+    print(f"\nResult: {result}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
