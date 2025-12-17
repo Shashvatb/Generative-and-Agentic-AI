@@ -1,6 +1,6 @@
 import os
 import uvicorn
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import InMemoryVectorStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
@@ -12,8 +12,8 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 load_dotenv()
 
-def load_pdf(file_path):
-    loader = PyPDFLoader(file_path)
+def load_file(file_path):
+    loader = TextLoader(file_path)
     return loader.load()
 
 
@@ -48,12 +48,12 @@ def init():
     answer:
 
     """
-    pdf_store_path = 'pokemon.pdf'
+    pdf_store_path = 'pokemon.txt'
     embedding_model = OllamaEmbeddings(model="llama2")
     llm = OllamaLLM(model='llama2')
     document_vector_db = InMemoryVectorStore(embedding_model)
 
-    documents = load_pdf(pdf_store_path)
+    documents = load_file(pdf_store_path)
     chunked_documents = chunk_documents(documents)
     document_vector_db = index_documents(document_vector_db, chunked_documents)
 
