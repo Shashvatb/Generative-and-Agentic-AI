@@ -14,9 +14,9 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install uv
 
-#RUN uv sync --frozen --no-cache
-RUN uv pip install --system
+RUN uv sync --frozen --no-cache
+# RUN uv pip install --system
 
 EXPOSE 7860
 
-CMD ["python", "main.py"]
+CMD ["uv", "run", "main"]
