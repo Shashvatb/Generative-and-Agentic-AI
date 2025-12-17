@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install uv
-RUN uv venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+#RUN uv venv /opt/venv
+#ENV PATH="/opt/venv/bin:$PATH"
 RUN uv sync --system
 #RUN uv add --no-cache-dir -r requirements.txt
 #RUN pip install --no-cache-dir -r requirements.txt
