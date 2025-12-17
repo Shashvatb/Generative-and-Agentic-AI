@@ -31,3 +31,4 @@ arxiv
 python-dotenv
 streamlit
 blobfile
+fastapi

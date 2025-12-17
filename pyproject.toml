@@ -13,6 +13,7 @@ dependencies = [
     "chromadb>=1.0.20",
     "datasets>=4.1.1",
     "faiss-cpu>=1.12.0",
+    "fastapi>=0.124.4",
     "langchain>=0.3.27",
     "langchain-community>=0.3.29",
     "langchain-groq>=0.3.7",

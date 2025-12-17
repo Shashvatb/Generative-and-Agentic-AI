@@ -1,9 +1,14 @@
 import os
+import uvicorn
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import InMemoryVectorStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
+from fastapi import FastAPI
+from pydantic import BaseModel
+from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -33,7 +38,7 @@ def generate_answer(user_query, context_documents, prompt_template, llm):
     response_chain = conversational_prompt | llm
     return response_chain.invoke({"user_query": user_query, "document_context": context_text})
 
-def main():
+def init():
     prompt_template = """ You are an expert pokemon analyst. Use the provided context to answer the query. If unsure, ask questions. 
     be concise and give short form answers. do not be goofy. get straight to the point. do not use emojis.
     if it is related to pokemon, use the context provided from the vector DB.
@@ -56,9 +61,45 @@ def main():
     document = search_document(document_vector_db, query)
     print(generate_answer(query, document, prompt_template, llm))
 
+    return {
+        "vector_db": document_vector_db,
+        "llm": llm,
+        "prompt": prompt_template,
+    }
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Loading RAG chain...")
+    app.state.rag = init()
+    yield
 
+
+app = FastAPI(
+    title="RAG API",
+    version="1.0",
+    lifespan=lifespan
+    )
+
+class QueryRequest(BaseModel):
+    query: str
+
+class QueryResponse(BaseModel):
+    answer: str
+
+
+@app.get("/")
+def test():
+    return {'test': 'success'}
+
+
+@app.post("/query")
+def query_rag(request: QueryRequest):
+    components = app.state.rag
+    document = search_document(components["vector_db"], request.query)
+    answer = generate_answer(request.query, document, components["prompt"], components["llm"])
+    return {"answer": answer}
 
 if __name__ == "__main__":
-    main()
+    
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
