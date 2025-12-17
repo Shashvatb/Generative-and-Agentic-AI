@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install uv
 
 RUN uv sync --frozen --no-cache
-# RUN uv pip install --system
+RUN ollama pull llama2
 
 EXPOSE 7860
 
