@@ -32,3 +32,4 @@ python-dotenv
 streamlit
 blobfile
 fastapi
+uvicorn
