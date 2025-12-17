@@ -17,4 +17,4 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_KEY }}
-        run: git push --force https://shashvatb:$HF_KEY@huggingface.co/spaces/shashvatb/pokemon_rag main
+        run: git push --force https://shashvatb:$HF_TOKEN@huggingface.co/spaces/shashvatb/pokemon_rag main
