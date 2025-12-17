@@ -19,4 +19,4 @@ RUN uv sync --frozen --no-cache
 
 EXPOSE 7860
 
-CMD ["uv", "run", "main"]
+CMD ["uv", "run", "main.py"]
