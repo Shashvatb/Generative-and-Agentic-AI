@@ -1,6 +1,6 @@
 ---
 title: Pokémon RAG
 app_file: main.py
-sdk: custom
+sdk: docker
 pinned: false
 ---
